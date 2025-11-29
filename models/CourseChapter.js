@@ -17,13 +17,13 @@ const CourseChapterSchema = new mongoose.Schema({
   },
 
   video: {
-    data: Buffer,          // actual video binary
-    contentType: String,   // "video/mp4"
+    data: Buffer,        
+    contentType: String,   
   },
 
   order: {
     type: Number,
-    default: 0 // to sort chapters
+    default: 0 
   },
 
   createdAt: { 

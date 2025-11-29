@@ -17,7 +17,6 @@
 //     .then(() => console.log("Connected to MongoDB"))
 //     .catch(err => console.error("Could not connect to MongoDB", err));
 
-
 // app.use('/api/samples', require('./routes/sampleRoutes'));
 // app.use('/api/courses', require('./routes/courseRoutes'));
 
@@ -36,6 +35,7 @@
 //     console.log("Server is running on port 5000");
 // });
 
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -46,7 +46,7 @@ const app = express();
 
 // ------------------ CORS ------------------
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: 'http://localhost:3000',
     credentials: true,
 }));
 

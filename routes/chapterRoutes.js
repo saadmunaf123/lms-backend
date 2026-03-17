@@ -13,10 +13,10 @@ const { addChapter, getCourseChapters, getSingleChapter } = require("../controll
 router.post("/:courseId", providerProtect, upload.single("video"), addChapter);
 
 // Get chapters (Student only)
+router.get("/:courseId/:chapterId", studentProtect, getSingleChapter);
+
 router.get("/:courseId", studentProtect, getCourseChapters);
 
 router.get("/provider/:courseId", providerProtect, getCourseChapters);
-
-router.get("/:courseId/:chapterId", studentProtect, getSingleChapter);
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const Course = require("../models/Course");
 const Provider = require("../models/Provider");
+const Admin = require("../models/Admin");
 const jwt = require("jsonwebtoken");
 
 exports.addCourse = async (req, res) => {

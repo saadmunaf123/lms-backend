@@ -52,7 +52,7 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'http://localhost:3000',
+    // 'http://localhost:3000',
     'https://lms-backend-9jj7.onrender.com'
   ],
   credentials: true,

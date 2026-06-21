@@ -184,33 +184,9 @@ exports.getCourseById = async (req, res) => {
   }
 };
 
-
 exports.deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
-
-    let token;
-
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer ")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    } else {
-      return res.status(401).json({
-        error: "No token provided",
-      });
-    }
-
-    let decoded;
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({
-        error: "Invalid token",
-      });
-    }
 
     const course = await Course.findById(id);
 
@@ -220,9 +196,8 @@ exports.deleteCourse = async (req, res) => {
       });
     }
 
-    const admin = await Admin.findById(decoded.id);
-
-    if (admin) {
+    // Admin can delete any course
+    if (req.userRole === "admin") {
       await Provider.findByIdAndUpdate(course.provider, {
         $pull: {
           coursesUploaded: course._id,
@@ -236,7 +211,8 @@ exports.deleteCourse = async (req, res) => {
       });
     }
 
-    if (course.provider.toString() !== decoded.id) {
+    // Provider can only delete their own course
+    if (course.provider.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         error: "You are not authorized to delete this course",
       });
@@ -253,6 +229,7 @@ exports.deleteCourse = async (req, res) => {
     res.json({
       message: "Course deleted successfully",
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -260,6 +237,83 @@ exports.deleteCourse = async (req, res) => {
     });
   }
 };
+
+
+// exports.deleteCourse = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     let token;
+
+//     if (
+//       req.headers.authorization &&
+//       req.headers.authorization.startsWith("Bearer ")
+//     ) {
+//       token = req.headers.authorization.split(" ")[1];
+//     } else {
+//       return res.status(401).json({
+//         error: "No token provided",
+//       });
+//     }
+
+//     let decoded;
+
+//     try {
+//       decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     } catch (err) {
+//       return res.status(401).json({
+//         error: "Invalid token",
+//       });
+//     }
+
+//     const course = await Course.findById(id);
+
+//     if (!course) {
+//       return res.status(404).json({
+//         error: "Course not found",
+//       });
+//     }
+
+//     const admin = await Admin.findById(decoded.id);
+
+//     if (admin) {
+//       await Provider.findByIdAndUpdate(course.provider, {
+//         $pull: {
+//           coursesUploaded: course._id,
+//         },
+//       });
+
+//       await Course.findByIdAndDelete(id);
+
+//       return res.json({
+//         message: "Course deleted by admin",
+//       });
+//     }
+
+//     if (course.provider.toString() !== decoded.id) {
+//       return res.status(403).json({
+//         error: "You are not authorized to delete this course",
+//       });
+//     }
+
+//     await Provider.findByIdAndUpdate(course.provider, {
+//       $pull: {
+//         coursesUploaded: course._id,
+//       },
+//     });
+
+//     await Course.findByIdAndDelete(id);
+
+//     res.json({
+//       message: "Course deleted successfully",
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({
+//       error: "Failed to delete course",
+//     });
+//   }
+// };
 
 
 exports.getProviderCourses = async (req, res) => {

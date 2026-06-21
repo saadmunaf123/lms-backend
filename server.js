@@ -45,18 +45,18 @@ require("dotenv").config();
 const app = express();
 
 // ------------------ CORS ------------------
-app.use(cors({
-    origin: '*',
-    credentials: true,
-}));
-
 // app.use(cors({
-//   origin: [
-//     'http://localhost:3000',
-//     '*'
-//   ],
-//   credentials: true,
+//     origin: '*',
+//     credentials: true,
 // }));
+
+app.use(cors({
+  origin: [
+    // 'http://localhost:3000',
+    'https://lms-backend-9jj7.onrender.com'
+  ],
+  credentials: true,
+}));
 
 app.use(express.json());
 

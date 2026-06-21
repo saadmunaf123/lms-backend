@@ -10,13 +10,15 @@ const { studentProtect } = require("../studentMiddleware");
 const { addChapter, getCourseChapters, getSingleChapter } = require("../controllers/chapterController");
 
 // Add chapter (Provider only)
+// Add chapter (Provider only)
 router.post("/:courseId", providerProtect, upload.single("video"), addChapter);
 
+router.get("/provider/:courseId", providerProtect, getCourseChapters);
+
 // Get chapters (Student only)
+
 router.get("/:courseId/:chapterId", studentProtect, getSingleChapter);
 
 router.get("/:courseId", studentProtect, getCourseChapters);
-
-router.get("/provider/:courseId", providerProtect, getCourseChapters);
 
 module.exports = router;

@@ -7,7 +7,7 @@ exports.addCourse = async (req, res) => {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    // Extract providerId from token instead of body
+   
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
@@ -23,7 +23,7 @@ exports.addCourse = async (req, res) => {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    // Image handling
+  
     let imageBase64 = null;
     if (req.files && req.files.image && req.files.image[0]) {
       imageBase64 = req.files.image[0].buffer.toString("base64");
@@ -31,7 +31,7 @@ exports.addCourse = async (req, res) => {
       imageBase64 = req.file.buffer.toString("base64");
     }
 
-    // Video handling
+  
     let videoBuffer = null;
     let videoContentType = null;
     if (req.files && req.files.video && req.files.video[0]) {
@@ -46,7 +46,7 @@ exports.addCourse = async (req, res) => {
 
     const courseData = {
       title,
-      provider: providerId, // use provider instead of instructor
+      provider: providerId, 
       rating,
       category,
       difficulty,
@@ -63,7 +63,7 @@ exports.addCourse = async (req, res) => {
     const course = new Course(courseData);
     await course.save();
 
-    // Update provider's coursesUploaded array
+   
     const provider = await Provider.findById(providerId);
     if (provider) {
       provider.coursesUploaded.push(course._id);
@@ -83,29 +83,29 @@ exports.addCourse = async (req, res) => {
   }
 };
 
-// Get all courses
+
 exports.getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find()
       .populate("provider", "name email")
-      .lean(); // returns plain objects
+      .lean();
 
-    // Remove video fields safely
+  
     const out = courses.map((c) => {
-      delete c.video;              // remove binary video
-      delete c.videoContentType;   // remove mimetype
+      delete c.video;            
+      delete c.videoContentType;  
       return c;
     });
 
     res.json(out);
   } catch (err) {
-    console.error(err); // log exact error
+    console.error(err); 
     res.status(500).json({ error: "Failed to fetch courses" });
   }
 };
 
 
-// PUT /api/courses/update/:id
+
 exports.updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -116,19 +116,19 @@ exports.updateCourse = async (req, res) => {
 
     const { title, instructor, rating, category, difficulty } = req.body;
 
-    // Update fields only if they exist in request body
+  
     if (title !== undefined) course.title = title;
     if (instructor !== undefined) course.instructor = instructor;
     if (rating !== undefined) course.rating = rating;
     if (category !== undefined) course.category = category;
     if (difficulty !== undefined) course.difficulty = difficulty;
 
-    // Image upload
+   
     if (req.files && req.files.image) {
       course.image = req.files.image[0].buffer.toString("base64");
     }
 
-    // Video upload
+
     if (req.files && req.files.video) {
       course.video = {
         data: req.files.video[0].buffer,
@@ -184,20 +184,82 @@ exports.getCourseById = async (req, res) => {
 };
 
 
-// Delete course (unchanged)
 exports.deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
+
+    let token;
+
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    } else {
+      return res.status(401).json({
+        error: "No token provided",
+      });
+    }
+
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        error: "Invalid token",
+      });
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(404).json({
+        error: "Course not found",
+      });
+    }
+
+    const admin = await Admin.findById(decoded.id);
+
+    if (admin) {
+      await Provider.findByIdAndUpdate(course.provider, {
+        $pull: {
+          coursesUploaded: course._id,
+        },
+      });
+
+      await Course.findByIdAndDelete(id);
+
+      return res.json({
+        message: "Course deleted by admin",
+      });
+    }
+
+    if (course.provider.toString() !== decoded.id) {
+      return res.status(403).json({
+        error: "You are not authorized to delete this course",
+      });
+    }
+
+    await Provider.findByIdAndUpdate(course.provider, {
+      $pull: {
+        coursesUploaded: course._id,
+      },
+    });
+
     await Course.findByIdAndDelete(id);
-    res.json({ message: "Course deleted" });
+
+    res.json({
+      message: "Course deleted successfully",
+    });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete course" });
+    console.error(err);
+    res.status(500).json({
+      error: "Failed to delete course",
+    });
   }
 };
 
-
-// Get courses uploaded by logged-in provider
-// Get courses uploaded by the logged-in provider
 
 exports.getProviderCourses = async (req, res) => {
   try {

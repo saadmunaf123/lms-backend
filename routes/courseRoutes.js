@@ -30,6 +30,6 @@ router.put(
 router.get("/all", getAllCourses);
 router.get("/my-courses", protect ,getProviderCourses);
 router.get("/:id", getCourseById);
-router.delete("/delete/:id", deleteCourse);
+router.delete("/delete/:id", protect, deleteCourse);
 
 module.exports = router;

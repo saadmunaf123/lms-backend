@@ -35,8 +35,10 @@ exports.protect = async (req, res, next) => {
     });
 
   } catch (err) {
+    console.log("JWT VERIFY ERROR:", err.message);
+
     return res.status(401).json({
-      error: "Invalid token",
+      error: err.message,
     });
   }
 };

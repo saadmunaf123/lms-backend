@@ -16,6 +16,9 @@ exports.protect = async (req, res, next) => {
 
     let user = await Provider.findById(decoded.id);
 
+    console.log("TOKEN VERIFIED:", decoded);
+    
+
     if (user) {
       req.user = user;
       req.userRole = "provider";
